@@ -168,6 +168,9 @@ backlog() {
     '7.72	type: test	area: sep1	test(sep1): honour Retry-After on 429 and give up after the retry budget' \
     '7.73	type: test	area: sep1	test(sep1): classify NAT64, 6to4, carrier NAT and unique local addresses' \
     '7.74	type: test	area: model	test(model): fingerprint is the final SortFindings tiebreak' \
+    '7.75	type: feature	area: cli	feat(cli): cancel an in-flight run on SIGINT and exit 3' \
+    '7.76	type: bug	area: cli	fix(cli): version rejects extra arguments instead of ignoring them' \
+    '7.77	type: test	area: cli	test(cli): duplicate --endpoint values fail without echoing the URL' \
     'G1	type: test	area: rules	gate: every P0 requirement has passing tests' \
     'G2	type: test	area: rules	gate: every scenario has a fixture and expected findings' \
     'G3	type: test	area: cli	gate: fail-closed paths all exit non-zero' \

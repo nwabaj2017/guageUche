@@ -56,7 +56,12 @@ func checkCommand(args []string, stdout, stderr io.Writer, d deps) int {
 		return int(model.ExitUsage)
 	}
 
-	result, err := run.Check(context.Background(), run.CheckRequest{
+	ctx := d.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	result, err := run.Check(ctx, run.CheckRequest{
 		ToolVersion: version,
 		Network:     *network,
 		Endpoints:   *endpoints,

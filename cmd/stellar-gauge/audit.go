@@ -45,7 +45,11 @@ func auditCommand(args []string, stdout, stderr io.Writer, d deps) int {
 		}
 		return int(model.ExitUsage)
 	}
-	result, err := run.Audit(context.Background(), cfg, run.AuditOptions{
+	ctx := d.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	result, err := run.Audit(ctx, cfg, run.AuditOptions{
 		ToolVersion: version,
 		FailOn:      severity,
 		NewSource:   d.newSource,

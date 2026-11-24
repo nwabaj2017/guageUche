@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/posture-sec/guage/internal/model"
 	"github.com/posture-sec/guage/internal/report"
@@ -15,7 +18,9 @@ import (
 )
 
 func main() {
-	os.Exit(runCLI(os.Args[1:], os.Stdout, os.Stderr, deps{}))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	os.Exit(runCLI(os.Args[1:], os.Stdout, os.Stderr, deps{ctx: ctx}))
 }
 
 // deps are the network clients one CLI run builds, so that a test can substitute
@@ -24,6 +29,7 @@ func main() {
 // stellar.toml fetcher, which keeps those defaults in one place instead of a copy
 // this package could weaken.
 type deps struct {
+	ctx         context.Context
 	newSource   run.SourceFactory
 	newIdentity run.IdentityFactory
 }
@@ -43,6 +49,11 @@ func runCLI(args []string, stdout, stderr io.Writer, d deps) int {
 	case "diff":
 		return diffCommand(args[1:], stdout, stderr, d)
 	case "version":
+		if len(args) > 1 {
+			fmt.Fprintf(stderr, "stellar-gauge: version takes no arguments\n")
+			usage(stderr)
+			return int(model.ExitUsage)
+		}
 		fmt.Fprintf(stdout, "stellar-gauge %s\n", version)
 		return int(model.ExitPass)
 	case "help", "-h", "--help":

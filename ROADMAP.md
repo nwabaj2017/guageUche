@@ -1,6 +1,6 @@
 # ROADMAP: Gauge
 
-Last updated: 2026-11-24T13:50Z (tasks 6.4 and 6.5: D-07 decided and operator outreach recorded)
+Last updated: 2026-11-24T20:05Z (tasks 7.75 to 7.77: CLI cancellation, version args check and endpoint credential redaction)
 Roadmap version: 3
 
 This file is the single source of truth for remaining work. It is read before every task and updated after every change.
@@ -40,7 +40,7 @@ The repository is 100% ready when every task in Phases 0 to 6 is done and every 
 | 4 | Dogfood and release v0.1.0 | 4 | 9 | 44% |
 | 5 | v0.2 features | 10 | 11 | 90% |
 | 6 | Release v0.2.0 and community | 3 | 5 | 60% |
-| 7 (backlog) | Backlog | 67 | 71 | 94% |
+| 7 (backlog) | Backlog | 70 | 74 | 94% |
 | **Phases 0 to 6** | **Readiness total** | **72** | **80** | **90%** |
 | Gates | G1 to G10 | 8 | 10 | 80% |
 <!-- PROGRESS:END -->
@@ -297,6 +297,9 @@ Constraint on the two remaining experimental tasks: Gauge never builds or submit
 - [x] **7.72** test(sep1): honour Retry-After on 429 and give up after the retry budget. M. Deps: 3.5. Done when: `internal/sep1/retry_test.go` injects a recording `sleep` and pins exactly `MaxRetries+1` attempts with delays of 1s, exponential backoff and a 5s cap for `Retry-After: 1`, no header and `120`, never the header's 120s; a 429, 429, 200 sequence reaches `StepOK` in three requests while 404 and 204 each stop after one. (done 2026-11-23; issue #152)
 - [x] **7.73** test(sep1): classify NAT64, 6to4, carrier NAT and unique local addresses. M. Deps: 3.5. Done when: `internal/sep1/ip_class_test.go` pins NAT64 zero-padding forms for private, loopback and public embedded IPv4, a near-NAT64 form with non-zero padding that must not unwrap, 6to4 forms embedding loopback, multicast, unspecified and private IPv4, and v4-mapped public and carrier NAT forms; every row asserts `Class`, `Class.String()` and `Dialable`. (done 2026-11-23; issue #153)
 - [x] **7.74** test(model): fingerprint is the final SortFindings tiebreak, so tied findings order identically after a shuffle. S. Deps: none. Done when: `SortFindings` compares severity descending, then account, rule ID and fingerprint ascending; `internal/model/sort_tiebreak_test.go` shuffles four tied findings into identical output; `TestSortFindingsIsStable` pins the fingerprint key; `go test ./internal/model -run 'TestSortFindings|TestSortTiebreak' -race -count=1` passes. Implements #127.
+- [x] **7.75** feat(cli): cancel an in-flight run on SIGINT and exit 3 (issue #211). M. Deps: none. Done when: `main` installs `signal.NotifyContext` for `os.Interrupt` and `syscall.SIGTERM` passed through `deps`; `check` and `audit` use it, falling back to background context; cancelled run exits 3 with empty stdout and one stderr line; `signal_test.go` verifies cancellation and normal completion report. (done 2026-11-24)
+- [x] **7.76** fix(cli): version rejects extra arguments instead of ignoring them (issue #212). S. Deps: none. Done when: `version` branch rejects extra arguments with message, usage text and exit 2; bare `version` and help flags unaffected; `version_args_test.go` tables dispatch cases. (done 2026-11-24)
+- [x] **7.77** test(cli): duplicate --endpoint values fail without echoing the URL (issue #213). S. Deps: none. Done when: `cmd/stellar-gauge/endpoint_flag_test.go` asserts exit 2 on duplicate endpoints, proves neither user:pass nor hostnames are echoed in stdout or stderr across two- and three-endpoint cases, and verifies named public endpoints on missing endpoint. (done 2026-11-24)
 ## 6. Dependency map (critical path)
 
 `0.2, 0.4 -> 1.1 -> 1.4 -> 2.1 -> 2.2, 2.3, 2.5 -> 2.7 -> 2.8 -> 2.9 -> 3.1 to 3.5 -> 3.7 -> 4.1 -> 4.8`
@@ -346,6 +349,7 @@ Newest first. One row per merged change.
 
 | Date (UTC) | Change | Tasks |
 |---|---|---|
+| 2026-11-24 | Tasks 7.75, 7.76, 7.77 (close #211, close #212, close #213): install signal.NotifyContext in CLI main to cancel in-flight check and audit runs on SIGINT or SIGTERM and exit 3 with empty stdout and one stderr line; reject extra arguments on version with exit 2, error message and usage text; add duplicate endpoint test ensuring userinfo credentials and private hosts are never echoed in stderr or stdout. | 7.75, 7.76, 7.77 |
 | 2026-11-24 | Tasks 6.4 and 6.5, recorded from evidence already in the tree rather than from a new run. D-07 becomes: pursue program applications once the Wave gate list clears, no general funding until a release exists, with the adoption evidence named as the 2026-11-20 record of three operators who agreed to scheduled audits and the zero false HIGH dogfood behind gate G4, and the absent release (0 records, no tags, 4.8 and 6.2 unticked) named as the reason the funding half waits. 6.5 records the outreach behind that evidence: an issuer treasury, an anchor merchant gateway and a treasury operator, each with what they answered, kept in issue #7 and in PR #269 at `7cf8886`. Both rows are ticked ahead of their `Deps: 6.2` on the owner's instruction of 2026-11-24, the same exception 5.1 records. | 6.4, 6.5, D-07 |
 | 2026-11-24 | test(model): fingerprint is the final SortFindings tiebreak, so findings that tie on severity, account and rule order by their evidence digest and output is identical after a shuffle. Rewrote TestSortFindingsIsStable around the new key and added sort_tiebreak_test.go with a 50-shuffle permutation test. Closes #127. | 7.74 |
 | 2026-11-23 | Tasks 7.69 and 7.70 (close #173, close #174): pin the body cap boundary in `internal/source/limit_test.go` (a body of exactly `MaxBody` decodes, `MaxBody+1` returns `ErrTooLarge` after one request) and the passphrase no-echo promise in `internal/source/passphrase_test.go`, with a comment in `internal/source/source.go` recording that a whitespace-only expectation is compared. | 7.69, 7.70 |

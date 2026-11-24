@@ -31,10 +31,13 @@ guage/
     {check,audit,version}.go              # P0 commands: flags, account validation, policy load (2.9)
     cli_test.go                           # in-process CLI tests: check, audit, JSON output, failure modes
     concurrency_flag_test.go              # check concurrency bounds and observed in-flight account reads (7.39)
+    endpoint_flag_test.go                 # duplicate endpoint credential redaction (7.77)
     format.go                             # shared format rejection message (7.40)
     format_flag_test.go                   # shared check and audit format rejection (7.40)
     facts_test.go                         # the zero-config surface: fact lines, the example policy and the messages that name what to type (3.7)
     g3_test.go                            # fail-closed gate G3 cases (2.10)
+    signal_test.go                        # CLI run cancellation on SIGINT/SIGTERM (7.75)
+    version_args_test.go                  # version extra arguments rejection (7.76)
     {snapshot,diff}.go                    # P1 command placeholders (5.2)
 
   internal/
