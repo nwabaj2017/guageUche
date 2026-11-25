@@ -75,7 +75,9 @@ func TestInterruptCancelsTheRun(t *testing.T) {
 	})
 
 	t.Run("completed run still writes its report", func(t *testing.T) {
-		code, stdout, stderr := execCLI(t, "check", "--network", testNetwork, "--endpoint", "https://horizon.example", accountOne)
+		d := offlineDeps(nil)
+		d.newSource = func(string) (source.Source, error) { return completedSource{}, nil }
+		code, stdout, stderr := execCLIWith(t, d, "check", "--network", testNetwork, "--endpoint", "https://horizon.example", accountOne)
 		if code != 0 {
 			t.Fatalf("exit code = %d, want 0 (stderr: %q)", code, stderr)
 		}
@@ -83,4 +85,29 @@ func TestInterruptCancelsTheRun(t *testing.T) {
 			t.Errorf("stdout is empty on completed run")
 		}
 	})
+}
+
+// completedSource answers both calls a check makes, so a run can finish without a
+// socket. The interrupt test above blocks in Network; this one proves the signal
+// handler is installed without turning a run that never sees a signal into a
+// dial to the endpoint named on the command line.
+type completedSource struct{}
+
+func (completedSource) Network(context.Context) (model.NetworkInfo, error) {
+	return model.NetworkInfo{Passphrase: testPassphrase, Ledger: 1}, nil
+}
+
+func (completedSource) Account(_ context.Context, id string) (model.AccountSnapshot, error) {
+	return model.AccountSnapshot{
+		ID:       id,
+		Sequence: "1",
+		Ledger:   1,
+		Thresholds: model.Thresholds{
+			Low: 2, Medium: 2, High: 2,
+		},
+		Signers: []model.Signer{
+			{Key: id, Type: model.SignerEd25519, Weight: 1},
+			{Key: "GBQHXYDEJD6NEIUQ5NYDBVNTRCACJXMLO32JUQHBGO524NMVYOMIN5CP", Type: model.SignerEd25519, Weight: 1},
+		},
+	}, nil
 }

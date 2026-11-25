@@ -131,6 +131,7 @@ backlog() {
     '6.3	type: research	area: rules	docs(triage): review external false-positive reports' \
     '6.4	type: research	area: docs	docs(decisions): decide funding and applications (D-07)' \
     '6.5	type: docs	area: docs	docs(outreach): contact issuers, anchors and treasury teams' \
+    '7.13	type: test	area: rules	test(rules): rules emit legal severities and never pre-set acceptance' \
     '7.36	type: test	area: rules	test(rules): reject duplicate or malformed rule IDs' \
     '7.37	type: test	area: rules	test(rules): pin registry evaluation order before reports sort' \
     '7.38	type: test	area: run	test(run): prove network mismatch skips identity fetches' \
@@ -139,6 +140,8 @@ backlog() {
     '7.41	type: security	area: model	security(model): hash evidence after format-character stripping' \
     '7.42	type: feature	area: policy	feat(policy): scope accepted risks to one network' \
     '7.43	type: test	area: sanitize	test(sanitize): consume OSC 8 hyperlinks whole, URL included' \
+    '7.44	type: test	area: rules	test(rules): facts stay findings-free and deterministic per context' \
+    '7.45	type: test	area: rules	test(rules): All returns a copy callers cannot edit' \
     '7.46	type: test	area: sanitize	test(sanitize): table the bidi overrides and isolate controls' \
     '7.47	type: test	area: sanitize	test(sanitize): flag IDN home domains and their punycode form' \
     '7.48	type: test	area: sep1	test(sep1): prove redirect refusals stop before a request leaves' \
@@ -168,9 +171,9 @@ backlog() {
     '7.72	type: test	area: sep1	test(sep1): honour Retry-After on 429 and give up after the retry budget' \
     '7.73	type: test	area: sep1	test(sep1): classify NAT64, 6to4, carrier NAT and unique local addresses' \
     '7.74	type: test	area: model	test(model): fingerprint is the final SortFindings tiebreak' \
-    '7.75	type: feature	area: cli	feat(cli): cancel an in-flight run on SIGINT and exit 3' \
-    '7.76	type: bug	area: cli	fix(cli): version rejects extra arguments instead of ignoring them' \
-    '7.77	type: test	area: cli	test(cli): duplicate --endpoint values fail without echoing the URL' \
+    '7.75	type: test	area: policy	test(policy): scan shipped policies for seed-shaped tokens' \
+    '7.76	type: test	area: source	test(source): prove Horizon never follows redirects' \
+    '7.77	type: test	area: source	test(source): pin integer-only Retry-After parsing and cap' \
     'G1	type: test	area: rules	gate: every P0 requirement has passing tests' \
     'G2	type: test	area: rules	gate: every scenario has a fixture and expected findings' \
     'G3	type: test	area: cli	gate: fail-closed paths all exit non-zero' \
@@ -222,6 +225,9 @@ G7	gate	The seven root documents and the site agree with the code in one recorde
 G8	gate	A direct push to the default branch is rejected and the required checks are the two this repository depends on.	1.3 added CODEOWNERS and protection, and 1.9 made the roadmap rule a required check, so the machinery is here. The gate asks for the observation instead: a push attempt that GitHub refused, and a branch setting listing ci / go and roadmap-check / gate as required. D-14 records the owner's decision to accept the no-approver warnings while this is a one-maintainer repository, so what this gate wants is the state rather than more protection than the organization can support.	A gate, and a hosted one: repository settings are the owner's to change and to read. A pull request cannot close it, and a ruleset added in a fork proves nothing about this repository.
 G9	gate	Every High-rated risk in the register has a mitigation task or an accepted decision beside it.	ROADMAP.md section 8 rates the risks this project lives with, and the failure mode is not a bad risk but a stale one: a High entry nobody has looked at since it was written, whose mitigation shipped or evaporated. The gate is the pass that re-reads each High row against the task list and the decision log and marks either a task id or a D-number. D-13 and D-14 are examples of risks answered by a decision rather than by code.	A gate: it closes on a written re-read. Not a new risk framework and not a severity debate for its own sake; if a risk needs a mitigation, the fix is a roadmap row, and the row comes first.
 G10	gate	ROADMAP.md is current in the merge that most recently touched it.	The rule that every contribution updates the roadmap is enforced twice, by the roadmap-check / gate job and by the pull request template's checkbox, and this gate is the human half: the file's Last updated line and its progress table describe the state the merged tree actually has. The trap is a row ticked without the table regenerated, or a changelog date invented rather than read from date -u, and scripts/roadmap_progress.sh --check is what makes that arithmetic visible instead of promised.	A gate: it closes on an inspection of the newest merged change, naming the run or the commit. Not a licence to rewrite history or to age the file for tidiness.
+7.75	task	Every shipped policy example and fixture is checked for seed-shaped tokens before it leaves the repository.	The loader scans raw policy bytes so a token in a comment cannot evade rejection, but that promise only protects files that pass through the loader. The documented example and every regular file under testdata/policy are shipped inputs too, so a repository-level test keeps accidental key material out of them. It checks both the loader's detector and a byte scan, and it fails if the file set disappears rather than passing vacuously.	Do not add a seed-shaped literal to the test or leave a scratch fixture in the repository. This task does not scan Horizon captures or change the loader.
+7.76	task	A Horizon 302 response is rejected without contacting the host named by Location.	The configured endpoint is the one the operator authorized. Following a redirect would make an additional request to a different host, while the existing client deliberately returns the 302 for classification as ErrStatus. Two loopback listeners make the boundary observable: one returns the redirect and the other proves it received no request for either Account or Network.	The test does not add redirect support, change endpoint normalization or use a real network. It also checks that the redirect URL is not copied into the error.
+7.77	task	Retry-After accepts only positive integer seconds, trims whitespace and caps the delay at five seconds.	The 429 path treats a zero result as no usable server hint and uses the client's own backoff; parsing an HTTP date into a long delay would change that contract. A direct table keeps the parser's empty, date, zero, negative, positive, capped and whitespace-trimmed cases explicit, and checks every result stays non-negative and below the cap.	Do not honor HTTP-date values or change the retry loop, its backoff or which response statuses use Retry-After.
 PROSE
 }
 
